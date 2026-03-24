@@ -2,114 +2,148 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<!-- 视口适配，手机电脑通用 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>仿卡西欧科学计算器 (FIX + 统计功能)</title>
+<title>科学计算器</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#7FB2F0',
+          secondary: '#A7D8F0',
+        },
+        fontFamily: {
+          aero: ['Segoe UI', 'Microsoft YaHei', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
 <style>
-/* 全局样式重置与基础配置 */
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', 'Microsoft YaHei', sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 body { 
   display: flex; justify-content: center; align-items: center; 
-  min-height: 100vh; background: #e4e4e4; padding: 10px;
+  min-height: 100vh;
+  background: linear-gradient(-45deg, #e0f4ff, #b3e0ff, #cce7ff, #e0f4ff);
+  background-size: 400% 400%;
+  animation: gradientFlow 20s ease infinite;
+  padding: 10px;
+}
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-/* 计算器主体容器 - 卡西欧经典黑底 */
 .casio { 
-  background: #1a1a1a; width: 380px; border-radius: 20px; 
-  padding: 25px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.3);
+  width: 380px;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
 }
 
-/* 屏幕区域 - 包含历史记录与输入显示 */
 .screen { 
-  background: #f0f8e7; border-radius: 8px; padding: 15px; 
-  margin-bottom: 20px; height: 120px; overflow: hidden;
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  height: 120px;
+  overflow: hidden;
 }
 #history { 
-  font-size: 16px; color: #555; text-align: right; 
+  font-size: 16px; color: #333; text-align: right; 
   min-height: 24px; word-break: break-all;
 }
 #display { 
   font-size: 42px; text-align: right; border: none; 
   background: transparent; width: 100%; outline: none; 
-  margin-top: 5px; color: #000;
+  margin-top: 5px; color: #1e3a6a; font-weight: 600;
 }
 
-/* 模式栏 - DEG/RAD/GRA/FIX 模式切换 */
-.mode-bar { 
-  display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
-}
+.mode-bar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 .mode-btn { 
-  flex: 1; padding: 6px 0; border-radius: 4px; border: none; 
-  background: #333; color: #fff; font-size: 14px; cursor: pointer;
+  flex: 1; padding: 6px 0; border-radius: 8px; border: none; 
+  background: rgba(255,255,255,0.3); color: #1e3a6a;
+  font-size: 14px; cursor: pointer;
+  backdrop-filter: blur(6px);
 }
-.mode-btn.active { background: #0099cc; } /* 选中态高亮 */
+.mode-btn.active { background: #7FB2F0; color: white; }
 
-/* 存储器栏 - M+ / M- / MR / MC */
-.memory { 
-  display: flex; gap: 8px; margin-bottom: 10px;
-}
+.memory { display: flex; gap: 8px; margin-bottom: 10px; }
 .mem-btn { 
-  flex: 1; padding: 6px 0; border-radius: 4px; border: none; 
-  background: #555; color: #fff; font-size: 14px; cursor: pointer;
+  flex: 1; padding: 6px 0; border-radius: 8px; border: none; 
+  background: rgba(255,255,255,0.4); color: #1e3a6a;
+  font-size: 14px; cursor: pointer;
+  backdrop-filter: blur(6px);
 }
 
-/* 按钮网格布局 - 5列自适应 */
 .buttons { 
   display: grid; grid-template-columns: repeat(5, 1fr); 
   gap: 8px;
 }
 
-/* 按钮通用样式 + 分类配色 */
 button { 
-  height: 50px; border: none; border-radius: 6px; 
+  height: 50px; border: none; border-radius: 10px; 
   font-size: 16px; font-weight: 500; cursor: pointer; 
   transition: all 0.15s ease;
+  backdrop-filter: blur(6px);
 }
-button:hover { opacity: 0.85; transform: scale(0.97); }
-.btn-num { background: #404040; color: #fff; } /* 数字键 */
-.btn-op { background: #666; color: #fff; }     /* 运算符键 */
-.btn-sci { background: #006699; color: #fff; } /* 科学函数键 */
-.btn-func { background: #b33c3c; color: #fff; } /* 功能键(AC/DEL) */
-.btn-base { background: #008055; color: #fff; } /* 常数/特殊键 */
-.btn-equal { background: #0099cc; color: #fff; grid-column: span 2; } /* 等号键 - 占2列 */
+button:hover { opacity: 0.9; transform: scale(0.96); }
 
-/* 进制转换区域 - 底部辅助功能 */
-.base-box { margin-top: 15px; color: #ddd; font-size: 14px; }
-.base-row { display: flex; gap: 8px; margin-bottom: 6px; }
+.btn-num { background: rgba(255,255,255,0.5); color: #1e3a6a; }
+.btn-op { background: rgba(127,178,240,0.4); color: #1e3a6a; }
+.btn-sci { background: rgba(127,178,240,0.6); color: white; }
+.btn-func { background: rgba(255,120,120,0.6); color: white; }
+.btn-base { background: rgba(120,200,150,0.5); color: white; }
+.btn-equal { background: #7FB2F0; color: white; grid-column: span 2; }
+
+.base-box { margin-top: 15px; color: #1e3a6a; font-size: 14px; }
+.base-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; }
 .base-row input { 
-  flex: 1; padding: 8px; border-radius: 4px; border: none; 
-  background: #222; color: #fff; text-align: right; font-size: 14px;
+  flex: 1; padding: 8px; border-radius: 8px; border: none; 
+  background: rgba(255,255,255,0.4); color: #1e3a6a;
+  text-align: right; font-size: 14px;
+  backdrop-filter: blur(4px);
 }
 
-/* 统计功能专用弹窗 - 模拟卡西欧统计模式 */
 .stat-modal { 
   display: none; position: fixed; top: 0; left: 0; width: 100%; 
-  height: 100%; background: rgba(0,0,0,0.8); 
+  height: 100%; background: rgba(0,0,0,0.3); 
   justify-content: center; align-items: center; z-index: 100;
+  backdrop-filter: blur(4px);
 }
 .stat-content { 
-  background: #222; padding: 20px; border-radius: 10px; 
-  width: 90%; max-width: 350px; color: #fff;
+  background: rgba(255,255,255,0.3);
+  backdrop-filter: blur(12px);
+  padding: 20px; border-radius: 12px; 
+  width: 90%; max-width: 350px; color: #1e3a6a;
+  border: 1px solid rgba(255,255,255,0.4);
 }
-.stat-title { font-size: 18px; margin-bottom: 15px; text-align: center; }
+.stat-title { font-size: 18px; margin-bottom: 15px; text-align: center; font-weight: bold; }
 .stat-item { margin: 10px 0; font-size: 16px; }
 .stat-close { 
   margin-top: 20px; width: 100%; padding: 10px; 
-  background: #0099cc; border: none; color: #fff; 
-  border-radius: 6px; cursor: pointer;
+  background: #7FB2F0; border: none; color: #fff; 
+  border-radius: 10px; cursor: pointer;
 }
 </style>
 </head>
 <body>
 
+<a href="index.html" style="position:fixed;top:20px;left:20px;z-index:99;background:rgba(255,255,255,0.4);backdrop-filter:blur(6px);padding:10px 16px;border-radius:12px;text-decoration:none;color:#1e3a6a;font-weight:bold;">← 返回首页</a>
+
 <div class="casio">
-  <!-- 屏幕：历史记录 + 输入输出 -->
   <div class="screen">
     <div id="history"></div>
     <input type="text" id="display" readonly>
   </div>
 
-  <!-- 模式切换：角度(DEG/RAD/GRA) + 小数位数(FIX) -->
   <div class="mode-bar">
     <button class="mode-btn active" onclick="setMode('deg')">DEG</button>
     <button class="mode-btn" onclick="setMode('rad')">RAD</button>
@@ -117,7 +151,6 @@ button:hover { opacity: 0.85; transform: scale(0.97); }
     <button class="mode-btn" onclick="setFixMode()">FIX</button>
   </div>
 
-  <!-- 存储器功能：M+ / M- / MR / MC -->
   <div class="memory">
     <button class="mem-btn" onclick="mc()">MC</button>
     <button class="mem-btn" onclick="mr()">MR</button>
@@ -125,91 +158,80 @@ button:hover { opacity: 0.85; transform: scale(0.97); }
     <button class="mem-btn" onclick="mMinus()">M-</button>
   </div>
 
-  <!-- 核心按键区 -->
   <div class="buttons">
-    <!-- 第一行：三角函数 + 对数/指数 -->
     <button class="btn-sci" onclick="insert('Math.sin(')">sin</button>
     <button class="btn-sci" onclick="insert('Math.cos(')">cos</button>
     <button class="btn-sci" onclick="insert('Math.tan(')">tan</button>
     <button class="btn-sci" onclick="insert('Math.log10(')">log</button>
     <button class="btn-sci" onclick="insert('Math.log(')">ln</button>
 
-    <!-- 第二行：反三角函数 + 幂运算 -->
     <button class="btn-sci" onclick="insert('Math.asin(')">sin⁻¹</button>
     <button class="btn-sci" onclick="insert('Math.acos(')">cos⁻¹</button>
     <button class="btn-sci" onclick="insert('Math.atan(')">tan⁻¹</button>
     <button class="btn-sci" onclick="insert('10**')">10ˣ</button>
     <button class="btn-sci" onclick="insert('Math.exp(')">eˣ</button>
 
-    <!-- 第三行：双曲函数 + 平方/立方 -->
     <button class="btn-sci" onclick="insert('Math.sinh(')">sinh</button>
     <button class="btn-sci" onclick="insert('Math.cosh(')">cosh</button>
     <button class="btn-sci" onclick="insert('Math.tanh(')">tanh</button>
     <button class="btn-sci" onclick="x2()">x²</button>
     <button class="btn-sci" onclick="x3()">x³</button>
 
-    <!-- 第四行：AC/DEL/括号/除 -->
     <button class="btn-func" onclick="clearAll()">AC</button>
     <button class="btn-func" onclick="del()">DEL</button>
     <button class="btn-op" onclick="insert('(')"> ( </button>
     <button class="btn-op" onclick="insert(')')"> ) </button>
     <button class="btn-op" onclick="insert('/')">÷</button>
 
-    <!-- 第五行：数字7-9 + 乘/减 -->
     <button class="btn-num" onclick="insert('7')">7</button>
     <button class="btn-num" onclick="insert('8')">8</button>
     <button class="btn-num" onclick="insert('9')">9</button>
     <button class="btn-op" onclick="insert('*')">×</button>
     <button class="btn-op" onclick="insert('-')">−</button>
 
-    <!-- 第六行：数字4-6 + 加 -->
     <button class="btn-num" onclick="insert('4')">4</button>
     <button class="btn-num" onclick="insert('5')">5</button>
     <button class="btn-num" onclick="insert('6')">6</button>
     <button class="btn-op" onclick="insert('+')">+</button>
-    <!-- 等号键 - 占2列 -->
-    <button class="btn-equal" onclick="calcEqual">=</button>
+    <!-- 👉 这里新增 C 按钮：只清空当前行 -->
+    <button class="btn-func" onclick="clearCurrent()">C</button>
 
-    <!-- 第七行：数字1-3 + 0/点 -->
     <button class="btn-num" onclick="insert('1')">1</button>
     <button class="btn-num" onclick="insert('2')">2</button>
     <button class="btn-num" onclick="insert('3')">3</button>
     <button class="btn-num" onclick="insert('0')">0</button>
     <button class="btn-num" onclick="insert('.')">.</button>
 
-    <!-- 第八行：常数/特殊功能 + 统计模式 -->
     <button class="btn-base" onclick="insert(Math.PI)">π</button>
     <button class="btn-base" onclick="insert(Math.E)">e</button>
     <button class="btn-sci" onclick="fact()">x!</button>
     <button class="btn-sci" onclick="inv()">1/x</button>
     <button class="btn-sci" onclick="sqrt()">√</button>
     
-    <!-- 统计功能入口 - 独立按钮 -->
-    <button class="btn-base" onclick="openStatMode()" style="grid-column: span 5; background: #7d5bbe;">📊 统计模式(Σ)</button>
+    <button class="btn-equal" onclick="calcEqual()">=</button>
+    <button class="btn-base" onclick="openStatMode()" style="grid-column: span 4; background: rgba(125,91,190,0.7); color:white;">📊 统计模式(Σ)</button>
   </div>
 
-  <!-- 进制转换区域 -->
   <div class="base-box">
     <div class="base-row">
-      <label style="width: 60px; color: #ccc;">十进制:</label>
-      <input type="text" id="dec" oninput="fromDec()" placeholder="十进制">
+      <label style="width:60px;">十进制:</label>
+      <input type="text" id="dec" oninput="fromDec()">
     </div>
     <div class="base-row">
-      <label style="width: 60px; color: #ccc;">二进制:</label>
-      <input type="text" id="bin" oninput="fromBin()" placeholder="二进制">
+      <label style="width:60px;">二进制:</label>
+      <input type="text" id="bin" oninput="fromBin()">
     </div>
     <div class="base-row">
-      <label style="width: 60px; color: #ccc;">八进制:</label>
-      <input type="text" id="oct" oninput="fromOct()" placeholder="八进制">
+      <label style="width:60px;">八进制:</label>
+      <input type="text" id="oct" oninput="fromOct()">
     </div>
     <div class="base-row">
-      <label style="width: 60px; color: #ccc;">十六进制:</label>
-      <input type="text" id="hex" oninput="fromHex()" placeholder="十六进制">
+      <label style="width:60px;">十六进制:</label>
+      <input type="text" id="hex" oninput="fromHex()">
     </div>
   </div>
 </div>
 
-<!-- 统计功能弹窗 - 显示计算结果 -->
 <div class="stat-modal" id="statModal">
   <div class="stat-content">
     <div class="stat-title">📊 统计计算结果</div>
@@ -223,106 +245,119 @@ button:hover { opacity: 0.85; transform: scale(0.97); }
 </div>
 
 <script>
-// ================= 全局变量配置 =================
-const display = document.getElementById('display');       // 输入显示框
-const history = document.getElementById('history');     // 历史记录框
-const statModal = document.getElementById('statModal'); // 统计弹窗
+const display = document.getElementById('display');
+const history = document.getElementById('history');
+const statModal = document.getElementById('statModal');
+let angleMode = 'deg';
+let fixMode = false;
+let fixDigits = 2;
+let memoryVal = 0;
+let statData = [];
 
-let angleMode = 'deg';      // 角度模式：deg(度)/rad(弧度)/gra(梯度)
-let fixMode = false;        // 小数位数固定模式：false(关闭)/true(开启)
-let fixDigits = 2;          // 固定小数位数：默认2位
-let memoryVal = 0;          // 存储器数值：M寄存器
-let statData = [];          // 统计数据存储：数组，用于存放统计模式下的输入数值
+function insert(value) { display.value += value; }
 
-// ================= 核心工具函数 =================
-/**
- * 追加内容到输入框
- * @param {string} value 要插入的字符/表达式
- */
-function insert(value) {
-  display.value += value;
-}
-
-/**
- * 清空所有输入与历史记录
- */
-function clearAll() {
+// 清空当前行（C按钮）
+function clearCurrent() {
   display.value = '';
-  history.textContent = '';
-  // 清空统计数据与弹窗
-  statData = [];
-  closeStatMode();
 }
 
-/**
- * 删除输入框最后一个字符
- */
-function del() {
-  display.value = display.value.slice(0, -1);
-}
+function clearAll() { display.value = ''; history.textContent = ''; statData = []; closeStatMode(); }
+function del() { display.value = display.value.slice(0,-1); }
 
-/**
- * 角度模式切换
- * @param {string} mode 模式：deg/rad/gra
- */
 function setMode(mode) {
   angleMode = mode;
-  // 更新UI选中态
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
   event.target.classList.add('active');
 }
 
-/**
- * 开启/关闭固定小数位数模式
- * 模拟卡西欧FIX模式，循环切换1/2/3位/关闭
- */
 function setFixMode() {
-  if (!fixMode) {
-    fixMode = true;
-    fixDigits = 1; // 首次开启默认1位
-    alert(`已开启FIX模式，固定${fixDigits}位小数`);
-  } else {
-    fixDigits++;
-    if (fixDigits > 3) {
-      fixMode = false;
-      fixDigits = 2;
-      alert('已关闭FIX模式，恢复自由小数位数');
-    } else {
-      alert(`已切换FIX模式，固定${fixDigits}位小数`);
-    }
-  }
-  // 更新UI选中态
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent === 'FIX' && fixMode);
-  });
+  if(!fixMode){ fixMode=true; fixDigits=1; alert(`FIX ${fixDigits} 位小数`); }
+  else { fixDigits++; if(fixDigits>3){ fixMode=false; fixDigits=2; alert('关闭FIX'); } else alert(`FIX ${fixDigits} 位小数`); }
+  document.querySelectorAll('.mode-btn').forEach(b=>{ if(b.textContent=='FIX') b.classList.toggle('active',fixMode); });
 }
 
-/**
- * 格式化数值（根据FIX模式固定小数位数）
- * @param {number} num 原始数值
- * @returns {string} 格式化后的字符串
- */
-function formatNumber(num) {
-  if (fixMode) {
-    return num.toFixed(fixDigits);
-  }
-  return num.toString();
-}
+function formatNumber(num) { return fixMode ? num.toFixed(fixDigits) : num.toString(); }
 
-// ================= 科学计算函数 =================
 function sqrt() { insert('Math.sqrt('); }
 function x2() { insert('**2'); }
 function x3() { insert('**3'); }
 function inv() { insert('1/'); }
 
-/**
- * 阶乘计算：x!
- * 限制范围：0 ≤ n ≤ 20（避免数值过大或计算错误）
- */
 function fact() {
-  try {
-    let n = Math.round(eval(display.value));
-    if (n < 0 || n > 20) {
-      display.value = '错误(0-20
+  try{
+    let n=Math.round(eval(display.value));
+    if(n<0||n>20){display.value='错误';return;}
+    let f=1;for(let i=1;i<=n;i++)f*=i;display.value=f;
+  }catch(e){display.value='错误';}
+}
+
+function mc() { memoryVal=0; }
+function mr() { display.value+=memoryVal; }
+function mPlus() { try{memoryVal+=eval(display.value);}catch(e){} }
+function mMinus() { try{memoryVal-=eval(display.value);}catch(e){} }
+
+function calcEqual() {
+  try{
+    let expr=display.value.replace(/×/g,'*').replace(/÷/g,'/');
+    let res=eval(expr);
+    history.textContent=display.value;
+    display.value=formatNumber(res);
+  }catch(e){display.value='错误';}
+}
+
+function openStatMode() { statModal.style.display='flex'; updateStat(); }
+function closeStatMode() { statModal.style.display='none'; }
+function addStat() { try{statData.push(parseFloat(display.value)); display.value='';}catch(e){} }
+
+function updateStat() {
+  const n=statData.length;
+  if(n===0){document.getElementById('statN').textContent=0;document.getElementById('statSum').textContent=0;document.getElementById('statAvg').textContent=0;document.getElementById('statStd').textContent=0;document.getElementById('statStdS').textContent=0;return;}
+  const sum=statData.reduce((a,b)=>a+b,0);
+  const avg=sum/n;
+  const sq=statData.map(x=>(x-avg)**2);
+  const v=sq.reduce((a,b)=>a+b,0)/n;
+  const vs=sq.reduce((a,b)=>a+b,0)/(n-1)||0;
+  const s=Math.sqrt(v);
+  const ss=Math.sqrt(vs);
+  document.getElementById('statN').textContent=n;
+  document.getElementById('statSum').textContent=formatNumber(sum);
+  document.getElementById('statAvg').textContent=formatNumber(avg);
+  document.getElementById('statStd').textContent=formatNumber(s);
+  document.getElementById('statStdS').textContent=formatNumber(ss);
+}
+
+function fromDec() {
+  const v=document.getElementById('dec').value;
+  if(!/^\d*$/.test(v))return;
+  const n=parseInt(v||0);
+  document.getElementById('bin').value=n.toString(2);
+  document.getElementById('oct').value=n.toString(8);
+  document.getElementById('hex').value=n.toString(16).toUpperCase();
+}
+function fromBin() {
+  const v=document.getElementById('bin').value;
+  if(!/^[01]*$/.test(v))return;
+  const n=parseInt(v||0,2);
+  document.getElementById('dec').value=n;
+  document.getElementById('oct').value=n.toString(8);
+  document.getElementById('hex').value=n.toString(16).toUpperCase();
+}
+function fromOct() {
+  const v=document.getElementById('oct').value;
+  if(!/^[0-7]*$/.test(v))return;
+  const n=parseInt(v||0,8);
+  document.getElementById('dec').value=n;
+  document.getElementById('bin').value=n.toString(2);
+  document.getElementById('hex').value=n.toString(16).toUpperCase();
+}
+function fromHex() {
+  const v=document.getElementById('hex').value;
+  if(!/^[0-9A-Fa-f]*$/.test(v))return;
+  const n=parseInt(v||0,16);
+  document.getElementById('dec').value=n;
+  document.getElementById('bin').value=n.toString(2);
+  document.getElementById('oct').value=n.toString(8);
+}
+</script>
+</body>
+</html>
